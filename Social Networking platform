@@ -1,0 +1,205 @@
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;unordered_map&gt;
+#include &lt;vector&gt;
+#include &lt;set&gt;
+#include &lt;vector&gt;
+#include &lt;queue&gt;
+#include &lt;algorithm&gt;
+#include &lt;stack&gt;
+using namespace std;
+class UserProfile {
+public:
+string userID;
+string username;
+UserProfile(string id, string name)
+: userID(id),
+username(name) {}
+};
+class UserProfileManager {
+private:
+struct Node {
+UserProfile profile;
+Node* next;
+Node(UserProfile prof)
+: profile(prof),
+next(nullptr) {}
+};
+Node* head;
+public:
+UserProfileManager()
+: head(nullptr) {}
+void addUserProfile(UserProfile profile) {
+Node* newNode = new Node(profile);
+newNode-&gt;next = head;
+head = newNode;
+}
+void removeUserProfile(string userID) {
+Node* current = head;
+Node* prev = nullptr;
+while (current != nullptr &amp;&amp; current-&gt;profile.userID != userID) {
+prev = current;
+current = current-&gt;next;
+}
+if (current == nullptr) {
+cout &lt;&lt; &quot;User not found.&quot; &lt;&lt; endl;
+return;
+}
+if (prev == nullptr) {
+head = current-&gt;next;
+}
+else {
+prev-&gt;next = current-&gt;next;
+}
+delete current;
+cout &lt;&lt; &quot;User removed.&quot; &lt;&lt; endl;
+}
+string serch_by_id(string user_id) {
+Node* current = head;
+while (current) {
+
+if (current-&gt;profile.userID == user_id) {
+return current-&gt;profile.username;
+}
+current = current-&gt;next;
+}
+return nullptr;
+}
+string search_by_name(const string&amp; username) {
+Node* current = head;
+while (current) {
+if (current-&gt;profile.username == username) {
+return current-&gt;profile.username;
+}
+current = current-&gt;next;
+}
+return nullptr;
+}
+};
+class HashTable {
+private:
+int size;
+UserProfileManager table;
+public:
+HashTable(int table_size, UserProfileManager profiles)
+: size(table_size),
+table(profiles) {}
+int hash_function(int key) {
+return key % size;
+}
+void insert(int key, UserProfile* profile) {
+int index = hash_function(key);
+if (!table[index]) {
+table[index] = new UserProfileManager();
+}
+table[index]-&gt;add_profile(profile-&gt;user_id, profile-&gt;username, profile-&gt;profile_details);
+}
+UserProfile* get(int key) {
+int index = hash_function(key);
+if (table[index]) {
+return table[index]-&gt;find_profile_by_id(key);
+}
+return nullptr;
+}
+~HashTable() {
+for (int i = 0; i &lt; size; ++i) {
+delete table[i];
+}
+}
+};
+class FriendGraph {
+private:
+unordered_map&lt;string, set&lt;string&gt;&gt; adjList;
+public:
+void addFriendship(string user1, string user2) {
+adjList[user1].insert(user2);
+adjList[user2].insert(user1);
+
+}
+void removeFriendship(string user1, string user2) {
+adjList[user1].erase(user2);
+adjList[user2].erase(user1);
+}
+bool areFriends(string user1, string user2) {
+return adjList[user1].count(user2) &gt; 0;
+}
+};
+class Comment {
+public:
+string text;
+vector&lt;Comment&gt; replies;
+Comment(string txt)
+: text(txt) {}
+};
+class Post {
+public:
+string content;
+Comment rootComment;
+int likes;
+Post(string txt, int l)
+: content(txt),
+likes(l),
+rootComment(&quot;&quot;) {}
+};
+struct PostComparator {
+bool operator()(const Post&amp; p1, const Post&amp; p2) {
+return p1.likes &gt; p2.likes;
+}
+};
+class NewsFeed {
+private:
+priority_queue&lt;Post, vector&lt;Post&gt;, PostComparator&gt; postHeap;
+public:
+void addPost(Post post) {
+postHeap.push(post);
+}
+void displayFeed() {
+while (!postHeap.empty()) {
+cout &lt;&lt; postHeap.top().content &lt;&lt; &quot; - Likes: &quot; &lt;&lt; postHeap.top().likes &lt;&lt; endl;
+postHeap.pop();
+}
+}
+};
+class NotificationManager {
+private:
+stack&lt;string&gt; notifications;
+public:
+void pushNotification(string notification) {
+notifications.push(notification);
+}
+void viewNotifications() {
+while (!notifications.empty()) {
+cout &lt;&lt; notifications.top() &lt;&lt; endl;
+notifications.pop();
+}
+}
+
+};
+int main() {
+UserProfileManager userManager;
+userManager.addUserProfile(UserProfile(&quot;1&quot;, &quot;Alice&quot;));
+userManager.addUserProfile(UserProfile(&quot;2&quot;, &quot;Bob&quot;));
+userManager.removeUserProfile(&quot;1&quot;);
+FriendGraph friendGraph;
+friendGraph.addFriendship(&quot;Alice&quot;, &quot;Bob&quot;);
+friendGraph.addFriendship(&quot;Alice&quot;, &quot;Charlie&quot;);
+cout &lt;&lt; (friendGraph.areFriends(&quot;Alice&quot;, &quot;Bob&quot;) ? &quot;Friends&quot; : &quot;Not friends&quot;) &lt;&lt; endl;
+friendGraph.removeFriendship(&quot;Alice&quot;, &quot;Bob&quot;);
+cout &lt;&lt; (friendGraph.areFriends(&quot;Alice&quot;, &quot;Bob&quot;) ? &quot;Friends&quot; : &quot;Not friends&quot;) &lt;&lt; endl;
+Post post1(&quot;Hello, world!&quot;, 100);
+Comment comment1(&quot;Great post!&quot;);
+Comment comment2(&quot;Thanks for sharing.&quot;);
+post1.rootComment.replies.push_back(comment1);
+post1.rootComment.replies.push_back(comment2);
+NewsFeed feed;
+feed.addPost(Post(&quot;Post 1&quot;, 10));
+feed.addPost(Post(&quot;Post 2&quot;, 5));
+feed.addPost(Post(&quot;Post 3&quot;, 15));
+feed.displayFeed();
+
+NotificationManager manager;
+manager.pushNotification(&quot;New friend request from Alice&quot;);
+manager.pushNotification(&quot;You have a new message from Bob&quot;);
+manager.pushNotification(&quot;Post liked by Charlie&quot;);
+manager.viewNotifications();
+}
